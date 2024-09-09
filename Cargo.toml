@@ -2,6 +2,13 @@
 name = "trie-hard"
 version = "0.1.0"
 edition = "2021"
+license = "Apache-2.0"
+repository = "https://github.com/cloudflare/trie-hard"
+categories = ["data-structures"]
+keywords = ["trie", "prefix-search"]
+description = """
+Fast implementation of a trie data structure
+"""
 
 [dev-dependencies]
 rstest = "0.21.0"
