@@ -1,3 +1,6 @@
+[![Crates.io](https://img.shields.io/crates/v/trie-hard.svg)](https://crates.io/crates/trie-hard)
+[![Documentation](https://docs.rs/trie-hard/badge.svg)](https://docs.rs/trie-hard/)
+
 # Don't just Trie, Trie Hard
 
 This crate is an implementation of the [trie](https://en.wikipedia.org/wiki/Trie) data structure that is optimized for reading from small maps where a large number of misses are expected. This is still a work in progress in the sense that as none of the other features you would expect to find in a trie (like prefix search), but it is used in production in Cloudflare's [Pingora](https://blog.cloudflare.com/pingora-open-source) to detect and remove specific headers from 30 million requests every second before they are proxied to their final destinations.
