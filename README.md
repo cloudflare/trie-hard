@@ -89,7 +89,7 @@ At this point we can visualize the conceptual trie and trie-hard like this
 | ------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | ![First Layer Conceptual Trie](https://github.com/cloudflare/trie-hard/blob/main/resources/FirstLayerVanilla.png?raw=true "Header Read vs HashMap Benchmark") | ![Trie Hard read is faster than HashMap for small maps where miss rate is high](https://github.com/cloudflare/trie-hard/blob/main/resources/FirstLayerTrieHard.png?raw=true "Header Read vs HashMap Benchmark") |
 
-Because of the recursive nature of a trie, we can repeat the same process of creating a mask based on allowed bytes at each node and preparing a set of children for each node. When we reach a complete word that appears in the initial set, we need to signify that the node is a valid word. Visually we will mark them with greed, but in rust they just appear as a different enum variant of `TrieNode`.
+Because of the recursive nature of a trie, we can repeat the same process of creating a mask based on allowed bytes at each node and preparing a set of children for each node. When we reach a complete word that appears in the initial set, we need to signify that the node is a valid word. Visually we will mark them with green, but in rust they just appear as a different enum variant of `TrieNode`.
 
 After repeating for one more layer, we can visualize the trie like the this.
 
