@@ -7,7 +7,7 @@ This crate is an implementation of the [trie](https://en.wikipedia.org/wiki/Trie
 
 ## Performance
 
-There are several other trie implementations for rust that are more full featured, so it you are looking for a more robust tool, you will probably want to check out [`radix_trie`](https://crates.io/crates/radix_trie) which seems to have the best features and performance. On the other hand, if you want raw speed and have the same narrow use case, you came to the right place!
+There are several other trie implementations for rust that are more full-featured, so if you are looking for a more robust tool, you will probably want to check out [`radix_trie`](https://crates.io/crates/radix_trie) which seems to have the best features and performance. On the other hand, if you want raw speed and have the same narrow use case, you came to the right place!
 
 Here is a chart showing the time taken to read 10k entries from a map that consists of 119 entries containing only lower-case characters, numbers, and `-`. As you can see, when miss rate gets above 50% the performance of trie-hard surpasses `std::HashMap` and improves as miss rates get higher. 
 
@@ -69,7 +69,7 @@ let root = Node {
 
 This tells us that if a byte other than `a` or `d` appears in the first position, the key being tested does not appear in the trie. This ability to make an exclusion decision at every step is what makes tries more appealing than even hashmaps in some cases. Searching for a string in a hashmap requires hashing the entire string whereas a trie can potentially determine that a string is not part of a set within a single byte.
 
-If the byte is `a` or `d` we still need to know which node to go to next. All nodes in the graph are stored in contiguous a vector (with the root node at index zero). Each node will contain the information on where its child appears in the array of nodes. In our example the root node will point to nodes with indexes 1 and 2. Where 1 is the index with keys starting with `a` and 2 is the node for keys starting with `d`. It is important that these child nodes are ordered by their corresponding byte. 
+If the byte is `a` or `d` we still need to know which node to go to next. All nodes in the graph are stored in a contiguous vector (with the root node at index zero). Each node will contain the information on where its child appears in the array of nodes. In our example the root node will point to nodes with indexes 1 and 2. Where 1 is the index with keys starting with `a` and 2 is the node for keys starting with `d`. It is important that these child nodes are ordered by their corresponding byte. 
 
 ```rust
 let root = Node {
@@ -99,7 +99,7 @@ After repeating for one more layer, we can visualize the trie like the this.
 
 Notice that `do` shows up as green because it is a complete word found in the original collection.
 
-Finally we add the last layer and complete this small trie.
+Finally, we add the last layer and complete this small trie.
 
 
 | Conceptual                                                                                                                                          | Trie-Hard                                                                                                                                                                                             |
