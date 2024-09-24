@@ -20,7 +20,7 @@ static HEADERS_REV: Lazy<Vec<String>> = Lazy::new(|| {
         .collect()
 });
 
-// Compile-time generated PHF Set
+// Compile-time generated PHF Sets
 include!(concat!(env!("OUT_DIR"), "/codegen.rs"));
 
 const PERCENT: &[i32] = &[100, 75, 50, 25, 10, 5, 2, 1];
@@ -99,17 +99,17 @@ fn hashmap_get(bencher: divan::Bencher, input: &Input) {
 fn phf_get(bencher: divan::Bencher, input: &Input) {
     bencher
         .with_inputs(|| {
-            let words = match input.size {
-                Size::Header => get_header_text(),
-                Size::Big => get_big_text(),
-                Size::Small => get_small_text(),
+            let (words, phf) = match input.size {
+                Size::Header => (get_header_text(), &HEADERS_PHF),
+                Size::Big => (get_big_text(), &BIG_PHF),
+                Size::Small => (get_small_text(), &SMALL_PHF),
             };
-            generate_samples(&words, input.percent)
+            (generate_samples(&words, input.percent), phf)
         })
-        .bench_values(|samples: Vec<&str>| {
+        .bench_values(|(samples, phf): (Vec<&str>, &phf::Set<&str>)| {
             samples
                 .iter()
-                .filter_map(|w| HEADERS_PHF.get_key(black_box(&w[..])))
+                .filter_map(|w| phf.get_key(black_box(&w[..])))
                 .count()
         });
 }
