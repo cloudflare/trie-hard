@@ -11,13 +11,17 @@ Fast implementation of a trie data structure
 """
 
 [dev-dependencies]
-rstest = "0.22.0"
 criterion = "0.5.1"
-radix_trie = "0.2.1"
-paste = "1.0.15"
+divan = "0.1.14"
 once_cell = "1.19.0"
+paste = "1.0.15"
+phf = { version = "0.11.2", default-features = false }
+radix_trie = "0.2.1"
+rstest = "0.22.0"
 
 [[bench]]
 name = "bench"
 harness = false
 
+[build-dependencies]
+phf_codegen = "0.11.2"
