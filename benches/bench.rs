@@ -13,7 +13,7 @@ const RANDOM: &str = include_str!("../data/random.txt");
 const HEADERS: &str = include_str!("../data/headers.txt");
 static HEADERS_REV: Lazy<Vec<String>> = Lazy::new(|| {
     HEADERS
-        .split(|c: char| c.is_whitespace())
+        .lines()
         .collect::<HashSet<_>>()
         .into_iter()
         .map(|s| s.chars().rev().collect::<String>())
