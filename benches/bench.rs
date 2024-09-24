@@ -1,12 +1,9 @@
 use std::collections::{HashMap, HashSet};
 
-use criterion::{black_box, criterion_group, criterion_main, Criterion};
+use divan::black_box;
 use once_cell::sync::Lazy;
 use radix_trie::Trie;
 use trie_hard::TrieHard;
-
-/// This is a rip off of the benchmark suite for for
-/// [`radix_trie`](https://github.com/michaelsproul/rust_radix_trie/blob/master/Cargo.toml)
 
 const OW_1984: &str = include_str!("../data/1984.txt");
 const SUN_RISING: &str = include_str!("../data/sun-rising.txt");
@@ -22,6 +19,177 @@ static HEADERS_REV: Lazy<Vec<String>> = Lazy::new(|| {
         .map(|s| s.chars().rev().collect::<String>())
         .collect()
 });
+
+// Compile-time generated PHF Set
+include!(concat!(env!("OUT_DIR"), "/codegen.rs"));
+
+const PERCENT: &[i32] = &[100, 75, 50, 25, 10, 5, 2, 1];
+
+fn main() {
+    divan::main();
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                 BENCHMARKS                                 */
+/* -------------------------------------------------------------------------- */
+
+#[divan::bench(args = args())]
+fn trie_get(bencher: divan::Bencher, input: &Input) {
+    bencher
+        .with_inputs(|| {
+            let words = match input.size {
+                Size::Header => get_header_text(),
+                Size::Big => get_big_text(),
+                Size::Small => get_small_text(),
+            };
+            let trie = make_trie(&words);
+            (generate_samples(&words, input.percent), trie)
+        })
+        .bench_values(|(samples, trie): (Vec<&str>, TrieHard<'_, &str>)| {
+            samples
+                .iter()
+                .filter_map(|w| trie.get(black_box(&w[..])))
+                .count()
+        });
+}
+
+#[divan::bench(args = args())]
+fn radix_trie_get(bencher: divan::Bencher, input: &Input) {
+    bencher
+        .with_inputs(|| {
+            let words = match input.size {
+                Size::Header => get_header_text(),
+                Size::Big => get_big_text(),
+                Size::Small => get_small_text(),
+            };
+            let trie = make_radix_trie(&words);
+            (generate_samples(&words, input.percent), trie)
+        })
+        .bench_values(|(samples, trie): (Vec<&str>, Trie<&str, usize>)| {
+            samples
+                .iter()
+                .filter_map(|w| trie.get(black_box(&w[..])))
+                .count()
+        });
+}
+
+#[divan::bench(args = args())]
+fn hashmap_get(bencher: divan::Bencher, input: &Input) {
+    bencher
+        .with_inputs(|| {
+            let words = match input.size {
+                Size::Header => get_header_text(),
+                Size::Big => get_big_text(),
+                Size::Small => get_small_text(),
+            };
+            let hashmap = make_hashmap(&words);
+            (generate_samples(&words, input.percent), hashmap)
+        })
+        .bench_values(
+            |(samples, hashmap): (Vec<&str>, HashMap<&str, &str>)| {
+                samples
+                    .iter()
+                    .filter_map(|w| hashmap.get(black_box(&w[..])))
+                    .count()
+            },
+        );
+}
+
+#[divan::bench(args = args())]
+fn phf_get(bencher: divan::Bencher, input: &Input) {
+    bencher
+        .with_inputs(|| {
+            let words = match input.size {
+                Size::Header => get_header_text(),
+                Size::Big => get_big_text(),
+                Size::Small => get_small_text(),
+            };
+            generate_samples(&words, input.percent)
+        })
+        .bench_values(|samples: Vec<&str>| {
+            samples
+                .iter()
+                .filter_map(|w| HEADERS_PHF.get_key(black_box(&w[..])))
+                .count()
+        });
+}
+
+#[divan::bench(args = &[Size::Big, Size::Small])]
+fn trie_insert(bencher: divan::Bencher, size: &Size) {
+    bencher
+        .with_inputs(|| match size {
+            Size::Header => get_header_text(),
+            Size::Big => get_big_text(),
+            Size::Small => get_small_text(),
+        })
+        .bench_values(|words: Vec<&str>| make_trie(black_box(&words)));
+}
+
+#[divan::bench(args = &[Size::Big, Size::Small])]
+fn radix_trie_insert(bencher: divan::Bencher, size: &Size) {
+    bencher
+        .with_inputs(|| match size {
+            Size::Header => get_header_text(),
+            Size::Big => get_big_text(),
+            Size::Small => get_small_text(),
+        })
+        .bench_values(|words: Vec<&str>| make_radix_trie(black_box(&words)));
+}
+
+#[divan::bench(args = &[Size::Big, Size::Small])]
+fn hashmap_insert(bencher: divan::Bencher, size: &Size) {
+    bencher
+        .with_inputs(|| match size {
+            Size::Header => get_header_text(),
+            Size::Big => get_big_text(),
+            Size::Small => get_small_text(),
+        })
+        .bench_values(|words: Vec<&str>| make_hashmap(black_box(&words)));
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                   INPUTS                                   */
+/* -------------------------------------------------------------------------- */
+
+#[derive(Debug)]
+enum Size {
+    Header,
+    Big,
+    Small,
+}
+
+struct Input {
+    size: Size,
+    percent: i32,
+}
+
+impl std::fmt::Display for Input {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        // divan sorts by lexicographic order, so we add padding to the percentage
+        f.write_fmt(format_args!("{:?} - {:03}%", self.size, self.percent))
+    }
+}
+
+fn args() -> impl Iterator<Item = Input> {
+    PERCENT
+        .iter()
+        .map(|p| Input {
+            size: Size::Header,
+            percent: *p,
+        })
+        .chain(PERCENT.iter().map(|p| Input {
+            size: Size::Big,
+            percent: *p,
+        }))
+        .chain(PERCENT.iter().map(|p| Input {
+            size: Size::Small,
+            percent: *p,
+        }))
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                   HELPERS                                  */
+/* -------------------------------------------------------------------------- */
 
 fn get_big_text() -> Vec<&'static str> {
     OW_1984
@@ -67,48 +235,6 @@ fn make_radix_trie<'a>(words: &[&'a str]) -> Trie<&'a str, usize> {
     trie
 }
 
-fn trie_insert_big(b: &mut Criterion) {
-    let words = get_big_text();
-    b.bench_function("trie hard insert - big", |b| {
-        b.iter(|| make_trie(black_box(&words)))
-    });
-}
-
-fn trie_insert_small(b: &mut Criterion) {
-    let words = get_small_text();
-    b.bench_function("trie hard insert - small", |b| {
-        b.iter(|| make_trie(black_box(&words)))
-    });
-}
-
-fn radix_trie_insert_big(b: &mut Criterion) {
-    let words = get_big_text();
-    b.bench_function("radix trie insert - big", |b| {
-        b.iter(|| make_radix_trie(black_box(&words)))
-    });
-}
-
-fn radix_trie_insert_small(b: &mut Criterion) {
-    let words = get_small_text();
-    b.bench_function("radix trie insert - small", |b| {
-        b.iter(|| make_radix_trie(black_box(&words)))
-    });
-}
-
-fn hashmap_insert_big(b: &mut Criterion) {
-    let words = get_big_text();
-    b.bench_function("hashmap insert - big", |b| {
-        b.iter(|| make_hashmap(black_box(&words)))
-    });
-}
-
-fn hashmap_insert_small(b: &mut Criterion) {
-    let words = get_small_text();
-    b.bench_function("hashmap insert - small", |b| {
-        b.iter(|| make_hashmap(black_box(&words)))
-    });
-}
-
 fn generate_samples<'a>(hits: &[&'a str], hit_percent: i32) -> Vec<&'a str> {
     let roulette_inc = hit_percent as f64 / 100.;
     let mut roulette = 0.;
@@ -126,118 +252,3 @@ fn generate_samples<'a>(hits: &[&'a str], hit_percent: i32) -> Vec<&'a str> {
 
     result
 }
-
-macro_rules! bench_percents_impl {
-    ( [ $( ($size:expr, $percent:expr ), )+ ] ) => {$(
-        paste::paste! {
-            // Trie Hard
-            fn [< trie_get_ $size _ $percent >] (b: &mut Criterion) {
-                let words = [< get_ $size _text >]();
-                let trie = make_trie(&words);
-                let samples = generate_samples(&words, $percent);
-                b.bench_function(
-                    concat!(
-                        "trie hard get - ",
-                        stringify!($size),
-                        " - ",
-                        stringify!($percent),
-                        "%"
-                    ), |b| {
-                    b.iter(|| {
-                        samples.iter()
-                            .filter_map(|w| trie.get(black_box(&w[..])))
-                            .count()
-                    })
-                });
-            }
-
-            // Radix Trie
-            fn [< radix_trie_get_ $size _ $percent >] (b: &mut Criterion) {
-                let words = [< get_ $size _text >]();
-                let trie = make_radix_trie(&words);
-                let samples = generate_samples(&words, $percent);
-                b.bench_function(concat!(
-                    "radix trie get - ",
-                    stringify!($size),
-                    " - ",
-                    stringify!($percent),
-                    "%"
-                ), |b| {
-                    b.iter(|| {
-                        samples.iter()
-                            .filter_map(|w| trie.get(black_box(&w[..])))
-                            .count()
-                    })
-                });
-            }
-
-            // Hashmap
-            fn [< hashmap_get_ $size _ $percent >](b: &mut Criterion) {
-                let words = [< get_ $size _text >] ();
-                let hashmap = make_hashmap(&words);
-                let samples = generate_samples(&words, $percent);
-                b.bench_function(concat!(
-                    "hashmap get - ",
-                    stringify!($size),
-                    " - ",
-                    stringify!($percent),
-                    "%"
-                ), |b| {
-                    b.iter(|| {
-                        samples.iter()
-                            .filter_map(|w| hashmap.get(black_box(&w[..])))
-                            .count()
-                    })
-                });
-            }
-        }
-
-
-    )+};
-
-    (  _groups [ $( ($size:expr, $percent:expr ), )+ ] ) => {
-        paste::paste! {
-            criterion_group!(
-                get_benches,
-                $(
-                    [< trie_get_ $size _ $percent >],
-                    [< radix_trie_get_ $size _ $percent >],
-                    [< hashmap_get_ $size _ $percent >],
-                )+
-            );
-        }
-    };
-}
-
-macro_rules! cartesian_impl {
-    ($out:tt [] $b:tt $init_b:tt) => {
-        bench_percents_impl!($out);
-        bench_percents_impl!(_groups $out);
-    };
-    ($out:tt [$a:expr, $($at:tt)*] [] $init_b:tt) => {
-        cartesian_impl!($out [$($at)*] $init_b $init_b);
-    };
-    ([$($out:tt)*] [$a:expr, $($at:tt)*] [$b:expr, $($bt:tt)*] $init_b:tt) => {
-        cartesian_impl!([$($out)* ($a, $b),] [$a, $($at)*] [$($bt)*] $init_b);
-    };
-}
-
-macro_rules! bench_get_percents {
-    ([$($size:tt)*], [$($percent:tt)*]) => {
-        cartesian_impl!([] [$($size)*,] [$($percent)*,] [$($percent)*,]);
-    };
-}
-
-bench_get_percents!([header, big, small], [100, 75, 50, 25, 10, 5, 2, 1]);
-
-criterion_group!(
-    insert_benches,
-    trie_insert_big,
-    radix_trie_insert_big,
-    hashmap_insert_big,
-    trie_insert_small,
-    radix_trie_insert_small,
-    hashmap_insert_small,
-);
-
-criterion_main!(get_benches, insert_benches);
