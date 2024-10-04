@@ -34,7 +34,7 @@ fn main() {
 /* -------------------------------------------------------------------------- */
 
 #[divan::bench(args = args())]
-fn trie_get(bencher: divan::Bencher, input: &Input) {
+fn trie_hard_get(bencher: divan::Bencher, input: &Input) {
     bencher
         .with_inputs(|| {
             let words = match input.size {
@@ -115,7 +115,7 @@ fn phf_get(bencher: divan::Bencher, input: &Input) {
 }
 
 #[divan::bench(args = &[Size::Big, Size::Small])]
-fn trie_insert(bencher: divan::Bencher, size: &Size) {
+fn trie_hard_insert(bencher: divan::Bencher, size: &Size) {
     bencher
         .with_inputs(|| match size {
             Size::Header => get_header_text(),
