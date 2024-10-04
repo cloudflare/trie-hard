@@ -20,7 +20,11 @@ radix_trie = "0.2.1"
 rstest = "0.22.0"
 
 [[bench]]
-name = "bench"
+name = "divan_bench"
+harness = false
+
+[[bench]]
+name = "criterion_bench"
 harness = false
 
 [build-dependencies]
