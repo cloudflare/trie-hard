@@ -129,7 +129,7 @@ child_index = ((  0b00010  - 1) &  0b00011 ).count_ones() // = 1
 
 The next node is the one at **index = 1** in the current node's child array.
 
-The reason this works may actually easier to understand with a larger example. Consider this node from a larger trie (unrelated to our original example).
+The reason this works may actually be easier to understand with a larger example. Consider this node from a larger trie (unrelated to our original example).
 
 ```rust
 TrieNode {
