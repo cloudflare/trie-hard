@@ -1033,6 +1033,7 @@ mod tests {
     #[case(&["dad", "ant", "and", "dot", "do"], "dada", Some("dad"))]
     #[case(&["dad", "ant", "and", "dot", "do"], "do", Some("do"))]
     #[case(&["dad", "ant", "and", "dot", "do"], "dot", Some("dot"))]
+    #[case(&["dad", "ant", "and", "dot", "do"], "dob", Some("do"))]
     #[case(&["dad", "ant", "and", "dot", "do"], "doto", Some("dot"))]
     fn test_ancestor(
         #[case] input: &[&str],
