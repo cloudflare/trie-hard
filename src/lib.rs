@@ -320,7 +320,8 @@ where
         }
     }
 
-    /// Find the closest ancestor to the given key.
+    /// Find the closest ancestor to the given key, where an ancestor is defined as the longest
+    /// string present in the trie that appears as a prefix of the given key.
     ///
     /// ```
     /// # use trie_hard::TrieHard;
@@ -612,7 +613,8 @@ macro_rules! trie_impls {
                 TrieIterSized::new(self, node_index)
             }
 
-            /// Find the closest ancestor to the given key.
+            /// Find the closest ancestor to the given key, where an ancestor is defined as the
+            /// longest string present in the trie that appears as a prefix of the given key.
             ///
             /// ```
             /// # use trie_hard::TrieHard;
