@@ -21,15 +21,23 @@
     unsafe_code
 )]
 #![warn(rust_2018_idioms)]
+#![no_std]
+
+extern crate alloc;
+
+#[cfg(test)]
+extern crate std;
 
 mod u256;
 
-use std::{
+use alloc::{
     collections::{BTreeMap, BTreeSet, VecDeque},
-    ops::RangeFrom,
+    vec,
+    vec::Vec,
 };
+use core::ops::RangeFrom;
 
-use u256::U256;
+use self::u256::U256;
 
 #[derive(Debug, Clone)]
 #[repr(transparent)]
