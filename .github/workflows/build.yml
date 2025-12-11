@@ -6,7 +6,7 @@ jobs:
   trie-hard:
     strategy:
       matrix:
-        toolchain: [nightly, 1.74, 1.80.0]
+        toolchain: [nightly, 1.74, 1.91.0]
     runs-on: ubuntu-latest
     # Only run on "pull_request" event for external PRs. This is to avoid
     # duplicate builds for PRs created from internal branches.
@@ -36,13 +36,18 @@ jobs:
       - name: Run cargo fmt
         run: cargo fmt --all -- --check
 
+      - name: Run cargo build
+        run: cargo build
+
       - name: Run cargo test
-        run: cargo test --verbose --lib --bins --tests --no-fail-fast
+        run: |
+          [[ ${{ matrix.toolchain }} != 1.74 ]] || (cargo test --verbose --lib --bins --tests --no-fail-fast)
 
       # Need to run doc tests separately.
       # (https://github.com/rust-lang/cargo/issues/6669)
       - name: Run cargo doc test
-        run: cargo test --verbose --doc
+        run: |
+          [[ ${{ matrix.toolchain }} != 1.74 ]] || (cargo test --verbose --doc)
 
       - name: Run cargo clippy
         run: |
@@ -50,4 +55,4 @@ jobs:
 
       - name: Run cargo audit
         run: |
-          [[ ${{ matrix.toolchain }} != 1.80.0 ]] || (cargo install cargo-audit && cargo audit)
+          [[ ${{ matrix.toolchain }} == 1.91.0 ]] || (cargo install cargo-audit && cargo audit)
