@@ -1,6 +1,6 @@
 [package]
 name = "trie-hard"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 license = "Apache-2.0"
 repository = "https://github.com/cloudflare/trie-hard"
@@ -11,13 +11,13 @@ Fast implementation of a trie data structure
 """
 
 [dev-dependencies]
-criterion = "0.5.1"
+criterion = "0.8.1"
 divan = "0.1.14"
 once_cell = "1.19.0"
 paste = "1.0.15"
-phf = { version = "0.11.2", default-features = false }
-radix_trie = "0.2.1"
-rstest = "0.22.0"
+phf = { version = "0.13.1", default-features = false }
+radix_trie = "0.3.0"
+rstest = "0.26.1"
 
 [[bench]]
 name = "divan_bench"
@@ -28,4 +28,4 @@ name = "criterion_bench"
 harness = false
 
 [build-dependencies]
-phf_codegen = "0.11.2"
+phf_codegen = "0.13.1"

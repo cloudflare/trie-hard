@@ -1,12 +1,11 @@
-use std::collections::HashSet;
+use std::{collections::HashSet, hint::black_box};
 
-use criterion::{black_box, criterion_group, criterion_main, Criterion};
+use criterion::{criterion_group, criterion_main, Criterion};
 use once_cell::sync::Lazy;
 use trie_hard::TrieHard;
 
 /// This is a rip off of the benchmark suite for for
 /// [`radix_trie`](https://github.com/michaelsproul/rust_radix_trie/blob/master/Cargo.toml)
-
 const OW_1984: &str = include_str!("../data/1984.txt");
 const SUN_RISING: &str = include_str!("../data/sun-rising.txt");
 const RANDOM: &str = include_str!("../data/random.txt");
